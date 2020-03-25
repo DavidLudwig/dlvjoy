@@ -200,10 +200,7 @@ int main(int, char **)
                     );
 
                     if (finger_in_logical_space) {
-                        [&]() { // start_joystick
-                            if (djoy.state != DL_Joy::Inactive) {
-                                return;
-                            }
+                        if (djoy.state == DL_Joy::Active) {
                             djoy.center = djoy.current = {
                                 finger_point_in_logical_space.x,
                                 finger_point_in_logical_space.y
@@ -215,7 +212,7 @@ int main(int, char **)
                                 finger_point_in_logical_space.x,
                                 finger_point_in_logical_space.y
                             );
-                        }();
+                        }
                     }
 
                     break;
