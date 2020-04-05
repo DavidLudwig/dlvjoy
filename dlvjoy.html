@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en-us">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <script type="text/javascript" src="live.js"></script>
+    <title>dlvjoy</title>
+    <style>
+        canvas.emscripten {
+            background-color: black;
+
+            /* the canvas *must not* have any border or padding, or mouse coords will be wrong */
+            border: 0px none;
+
+            /* make the canvas take up the full content of the window */
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+    <script type='text/javascript'>
+        var Module = {
+            printErr: function (text) {
+                if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+                if (0) { // XXX disabled for safety typeof dump == 'function') {
+                    dump(text + '\n'); // fast, straight to the real console
+                } else {
+                    console.error(text);
+                }
+            },
+            canvas: (function () {
+                var canvas = document.getElementById('canvas');
+
+                // As a default initial behavior, pop up an alert when webgl context is lost. To make your
+                // application robust, you may want to override this behavior before shipping!
+                // See http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.15.2
+                canvas.addEventListener("webglcontextlost", function (e) { alert('WebGL context lost. You will need to reload the page.'); e.preventDefault(); }, false);
+
+                return canvas;
+            })(),
+        };
+
+        function handleResize() {
+            var canvas = document.getElementById("canvas");
+            // console.log("handleResize");
+            // console.log("window.innerWidth:", window.innerWidth);
+            // console.log("window.innerHeight:", window.innerHeight);
+            // console.log("canvas.width:", canvas.width);
+            // console.log("canvas.height:", canvas.height);
+            // const scaleMaxX = Math.floor(window.innerWidth / canvas.width);
+            // const scaleMaxY = Math.floor(window.innerHeight / canvas.height);
+            // const scale = Math.max(1, Math.min(scaleMaxX, scaleMaxY));
+            // // console.log("handleResize", scale, "<--", scaleMaxX, scaleMaxY);
+            // document.documentElement.style.setProperty("--canvas-scaling-factor", scale);
+            // var hudScalingFactor = document.getElementById("hudScalingFactor");
+            // if (hudScalingFactor) {
+            //     hudScalingFactor.textContent = scale;
+            // }
+        }
+
+        window.addEventListener('load', handleResize);
+        window.addEventListener('resize', handleResize);
+    </script>
+    <script async type="text/javascript" src="dlvjoy.js"></script>
+</body>
+
+</html>

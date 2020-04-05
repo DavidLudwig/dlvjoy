@@ -1,0 +1,179 @@
+
+:root {
+    --canvas-scaling-factor: 1.0;
+}
+
+body {
+    background-color: black;
+}
+
+.circle {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: #dddddd;
+    -webkit-transform: scale(1, 1);
+    transform: scale(1, 1);
+}
+
+.circle.circle_pulse {
+    -webkit-animation-timing-function: ease;
+    animation-timing-function: ease;
+    -webkit-animation: circle_pulse 2s infinite;
+    animation: circle_pulse 2s infinite;
+    background-color: #ffffff;
+}
+
+.circle_svg {
+    fill: #333333;
+    stroke: #333333;
+    stroke-linejoin: round;
+    stroke-width: 5;
+    transition: all 0.3s;
+}
+
+.circle_svg:hover {
+    /* cursor: pointer; */
+    fill: #000000;
+    stroke: #000000;
+    -webkit-transform: scale(1.2, 1.2);
+    transform: scale(1.2, 1.2);
+}
+
+@-webkit-keyframes circle_pulse {
+    0% {
+        -webkit-transform: scale(1, 1);
+        transform: scale(1, 1);
+    }
+    25% {
+        -webkit-transform: scale(1, 1);
+        transform: scale(1, 1);
+    }
+    50% {
+        -webkit-transform: scale(1.2, 1.2);
+        transform: scale(1.2, 1.2);
+    }
+    100% {
+        -webkit-transform: scale(1, 1);
+        transform: scale(1, 1);
+    }
+}
+
+@keyframes circle_pulse {
+    0% {
+        -webkit-transform: scale(1, 1);
+        transform: scale(1, 1);
+    }
+    25% {
+        -webkit-transform: scale(1, 1);
+        transform: scale(1, 1);
+    }
+    50% {
+        -webkit-transform: scale(1.2, 1.2);
+        transform: scale(1.2, 1.2);
+    }
+    100% {
+        -webkit-transform: scale(1, 1);
+        transform: scale(1, 1);
+    }
+}
+
+.content_window {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(var(--canvas-scaling-factor));
+    width: 1100px;
+    height: 520px;
+    /* display over the HUD */
+    z-index: 2;
+}
+
+.coverer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background-color: darkblue;
+    border-color: darkgrey;
+    border-width: 1px;
+    border-style: solid;
+}
+
+canvas.emscripten {
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -webkit-crisp-edges;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    background-color: black;
+    /* the canvas *must not* have any border or padding, or mouse coords will be wrong */
+    border: 0px none;
+}
+
+#hud {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    /* height: 100px; */
+    z-index: 1;
+    /* background-color: green; */
+    color: white;
+    padding: 4px;
+}
+
+.hudButton {
+    /* position: absolute; */
+    position: relative;
+    right: 8px;
+    background-color: #ffffff;
+    padding: 8px;
+    border-radius: 8px;
+    /* right: 0; */
+    float: right;
+    /* box-shadow: 4px 4px gray; */
+}
+
+.hudIcon {
+    display: block;
+    margin: auto;
+    width: 24px;
+    height: 24px;
+    padding: 8px;
+}
+
+.hudText {
+    display: block;
+    color: black;
+    font-family: Sans-serif;
+    /* text-transform: uppercase; */
+}
+
+.loader {
+    border: 16px solid #00000033;
+    border-top: 16px solid #ffffff;
+    border-radius: 50%;
+    width: 100px;
+    height: 100px;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+#click_to_start {
+    /* visibility: visible; */
+}
+
+#waiting_to_start {
+    visibility: hidden;
+}

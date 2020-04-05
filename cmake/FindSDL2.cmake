@@ -35,7 +35,12 @@
 #  License text for the above reference.)
 
 find_package(PkgConfig QUIET)
-pkg_check_modules(PC_SDL2 QUIET sdl2)
+pkg_check_modules(PC_SDL2 sdl2)
+
+message("PC_SDL2_INCLUDEDIR: (${PC_SDL2_INCLUDEDIR})")
+message("PC_SDL2_INCLUDE_DIRS: (${PC_SDL2_INCLUDE_DIRS})")
+message("PC_SDL2_LIBDIR: (${PC_SDL2_LIBDIR})")
+message("PC_SDL2_LIBRARY_DIRS: (${PC_SDL2_LIBRARY_DIRS})")
 
 # Look for SDL_render.h, which is in SDL2, but not in SDL1.
 find_path(SDL2_INCLUDE_DIR
@@ -45,6 +50,7 @@ find_path(SDL2_INCLUDE_DIR
     ${PC_SDL2_INCLUDE_DIRS}
   PATH_SUFFIXES SDL2
 )
+message("SDL2_INCLUDE_DIR: (${SDL2_INCLUDE_DIR})")
 
 find_library(SDL2_LIBRARY
   NAMES SDL2
@@ -53,6 +59,7 @@ find_library(SDL2_LIBRARY
     ${PC_SDL2_LIBRARY_DIRS}
   PATH_SUFFIXES x64 x86
 )
+message("SDL2_LIBRARY: (${SDL2_LIBRARY})")
 
 if(NOT SDL2_BUILDING_LIBRARY)
   find_library(SDL2MAIN_LIBRARY
