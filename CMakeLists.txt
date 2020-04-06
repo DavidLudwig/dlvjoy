@@ -1,13 +1,18 @@
+#
+# TODO:
+#   - fix Release builds on iOS (and possibly elsewhere; due to missing 'd'-postfixed libs)
+#
+
+
 cmake_minimum_required(VERSION 3.15)
 project(dlvjoy)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 
-# message(FATAL_ERROR "CMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME}")
-
-set(RESOURCES
-    "${CMAKE_CURRENT_LIST_DIR}/gnsh-bitmapfont-colour8.png"
-    # "${CMAKE_CURRENT_LIST_DIR}/gnsh-bitmapfont-colour9.png"
-)
+set(RESOURCES)
+# set(RESOURCES
+#     # "${CMAKE_CURRENT_LIST_DIR}/gnsh-bitmapfont-colour8.png"
+#     # "${CMAKE_CURRENT_LIST_DIR}/gnsh-bitmapfont-colour9.png"
+# )
 if (IOS)
     list(APPEND RESOURCES
         "${CMAKE_CURRENT_LIST_DIR}/LaunchScreen.storyboard"
@@ -23,9 +28,12 @@ if (IOS)
 endif()
 
 add_executable(dlvjoy
-    main.cpp
+    main.c
     ${RESOURCES}
 )
+# target_compile_options(dlvjoy PRIVATE "-v")
+target_compile_options(dlvjoy PRIVATE "-std=c89")
+# target_compile_options(dlvjoy PRIVATE -Weverything -Wno-reserved-id-macro -Wno-comment)
 
 # find_package(SDL2 REQUIRED)
 # message("SDL2_INCLUDE_DIRS: (${SDL2_INCLUDE_DIRS})")
@@ -143,13 +151,16 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     target_link_options(dlvjoy PRIVATE "SHELL:-framework IOKit")
     target_link_libraries(dlvjoy iconv)
 
-    add_custom_command(
-        TARGET dlvjoy
-        PRE_BUILD COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different "${RESOURCES}" $<TARGET_FILE_DIR:dlvjoy>
-    )
+    if (RESOURCES)
+        add_custom_command(
+            TARGET dlvjoy
+            PRE_BUILD COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different "${RESOURCES}" $<TARGET_FILE_DIR:dlvjoy>
+        )
+    endif()
 elseif (EMSCRIPTEN)
     # target_compile_options(dlvjoy PRIVATE "SHELL:-s TOTAL_MEMORY=8388608")
-    set(EMSCRIPTEN_FLAGS "SHELL:-s ASSERTIONS=1 --preload-file gnsh-bitmapfont-colour8.png")  # -s INITIAL_MEMORY=67108864")
+    # set(EMSCRIPTEN_FLAGS "SHELL:-s ASSERTIONS=1 --preload-file gnsh-bitmapfont-colour8.png")  # -s INITIAL_MEMORY=67108864")
+    set(EMSCRIPTEN_FLAGS "SHELL:-s ASSERTIONS=1")  # -s INITIAL_MEMORY=67108864")
     target_compile_options(dlvjoy PRIVATE ${EMSCRIPTEN_FLAGS})
     target_link_options(dlvjoy PRIVATE ${EMSCRIPTEN_FLAGS})
     # target_link_options(dlvjoy PRIVATE "--preload-file gnsh-bitmapfont-colour8.png")
@@ -164,10 +175,12 @@ elseif (EMSCRIPTEN)
     # set(
     # target_compile_options(dlvjoy PRIVATE "--preload-file gnsh-bitmapfont-colour8.png")
     # target_link_options(dlvjoy PRIVATE "--preload-file gnsh-bitmapfont-colour8.png")
-    add_custom_command(
-        TARGET dlvjoy
-        PRE_BUILD COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different "${RESOURCES}" $<TARGET_FILE_DIR:dlvjoy>
-    )
+    if (RESOURCES)
+        add_custom_command(
+            TARGET dlvjoy
+            PRE_BUILD COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different "${RESOURCES}" $<TARGET_FILE_DIR:dlvjoy>
+        )
+    endif()
     add_custom_command(
         TARGET dlvjoy
         POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different "${CMAKE_CURRENT_LIST_DIR}/dlvjoy.*" $<TARGET_FILE_DIR:dlvjoy>
