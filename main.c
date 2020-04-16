@@ -49,6 +49,43 @@ static int game_h = 0;              // height of game-field; in SDL_Window size 
 static Uint64 prev_loop_time = 0;   // previous value of loop()'s 'now';
                                     //   as retrieved from SDL_GetPerformanceCounter()
 
+typedef struct {
+    int image_w;
+    int image_h;
+    int char_w;
+    int char_h;
+    int margins;
+    char first_char;
+    char last_char;
+    uint16_t bits_per_pixel;
+    void *pixels;
+    SDL_Texture *texture;
+} Bitmap_Font;
+
+static uint8_t main_font_pixels[] = {
+    245,40,205,205,127,254,148,148,32,3,253,216,245,3,141,182,223,254,71,100,
+    222,74,218,46,247,169,71,181,14,61,86,208,69,3,247,245,255,130,215,183,219,
+    251,85,237,147,90,218,47,247,171,167,207,247,235,52,28,67,7,189,221,255,
+    255,255,255,255,255,255,255,255,255,255,255,180,194,4,67,38,149,52,192,146,
+    72,14,47,73,52,219,87,38,2,73,58,146,75,55,151,0,180,0,23,22,2,40,90,144,
+    182,187,191,105,52,218,85,38,130,96,234,168,85,189,191,136,194,28,66,160,
+    149,113,27,42,84,14,56,255,255,255,255,255,255,255,255,255,255,255,255,125,
+    253,247,119,51,255,255,251,255,255,202,96,164,201,44,63,170,13,50,64,146,
+    72,91,72,241,52,130,87,26,18,73,154,144,170,63,184,233,52,104,87,26,18,73,
+    202,128,176,219,120,224,201,46,85,32,149,49,153,40,88,74,120,255,255,253,
+    254,255,255,123,255,255,247,255,255
+};
+static Bitmap_Font main_font = {
+    96, 18,             // image size
+    3, 6,               // character size (fixed-width)
+    1,                  // vertical margins
+    ' ',                // first available char
+    '~',                // last available char
+    1,                  // bits per pixel
+    main_font_pixels,   // pixels
+    NULL                // texture - to be filled in later
+};
+
 
 static int round_f2i(float x) 
 { 
@@ -67,6 +104,52 @@ static float clampf(float value, float min_value, float max_value)
     } else {
         return value;
     }
+}
+
+static SDL_Point DrawText(SDL_Renderer *renderer, int x, int y,
+    const Bitmap_Font *font, int scale, const char *text, ...)
+{
+    va_list ap;
+    char formatted[1024 * 4];
+    const char *current;
+    SDL_Point end_pos;
+    SDL_Rect src_rect;
+    SDL_Rect dst_rect;
+
+    va_start(ap, text);
+    SDL_vsnprintf(formatted, sizeof(formatted), text, ap);
+    va_end(ap);
+
+    src_rect.x = 0;
+    src_rect.y = 0;
+    src_rect.w = font->char_w;
+    src_rect.h = font->char_h;
+    dst_rect.x = x;
+    dst_rect.y = y;
+    dst_rect.w = font->char_w * scale;
+    dst_rect.h = font->char_h * scale;
+    current = formatted;
+
+    for (; *current != '\0'; ++current) {
+        if (*current >= font->first_char && *current <= font->last_char) {
+            const int ch_index = *current - font->first_char;
+            const int row = ch_index / (font->image_w / font->char_w);
+            const int col = ch_index - (row * (font->image_w / font->char_w));
+            src_rect.x = col * font->char_w;
+            src_rect.y = row * font->char_h;
+            SDL_RenderCopy(renderer, font->texture, &src_rect, &dst_rect);
+            dst_rect.x += (font->char_w + font->margins) * scale;
+        } else if (*current == '\n') {
+            dst_rect.x = x;
+            dst_rect.y += (font->char_h + font->margins) * scale;
+        } else {
+            dst_rect.x += (font->char_w + font->margins) * scale;
+        }
+    }
+
+    end_pos.x = dst_rect.x;
+    end_pos.y = dst_rect.y;
+    return end_pos;
 }
 
 static void resize_game_field(int w, int h)
@@ -159,10 +242,12 @@ static void loop()
     float player_dx = 0.f;
     float player_dy = 0.f;
     int num_joysticks = 0;
+    int num_hardware_controllers = 0;
     SDL_FRect player_rect = {0};
     SDL_Event event;
     int i;
     int joy_index;
+    SDL_Point text_pos;
 
     // We're done with 'prev_loop_time' for now; go ahead
     // and set it up for the next call to loop.
@@ -318,6 +403,8 @@ static void loop()
         SDL_FPoint circle[32];
         const float rad_step = (2.f * (float)M_PI) / (SDL_arraysize(circle) - 1);
 
+        SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+
         // Draw vjoy center position
         temp_rect.x = round_f2i(vjoy_center.x) - ((temp_rect.w-1)/2);
         temp_rect.y = round_f2i(vjoy_center.y) - ((temp_rect.h-1)/2);
@@ -359,6 +446,9 @@ static void loop()
             // and thus has unidentifiable axes.  Skip it.
             continue;
         }
+        if (!SDL_JoystickIsVirtual(joy_index)) {
+            num_hardware_controllers++;
+        }
 
         input_value = SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTX);
         if (SDL_abs(input_value) > axis_dead_zone) {
@@ -375,12 +465,28 @@ static void loop()
     player_cx = clampf(player_cx + player_dx, 0.f, game_w);
     player_cy = clampf(player_cy + player_dy, 0.f, game_h);
 
+    // Draw informational text
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+    text_pos = DrawText(renderer, 20, 40, &main_font, 3,
+        "SDL2 Virtual Game\nControllers\n");
+    text_pos = DrawText(renderer, 20, text_pos.y + 5, &main_font, 2,
+        "Tap or click, then drag, to move\n"
+        "the player-square, or connect and\n"
+        "use a hardware game controller.\n"
+        "Touch or mouse movements are sent\n"
+        "through an SDL2-managed, virtual\n"
+        "game controller.\n");
+    text_pos = DrawText(renderer, 20, text_pos.y + 5, &main_font, 2,
+        "Num Hardware Controllers Detected: %d",
+        num_hardware_controllers);
+
     // Draw the player
     player_rect.x = player_cx - (player_size / 2.f);
     player_rect.y = player_cy - (player_size / 2.f);
     player_rect.w = player_size;
     player_rect.h = player_size;
-    SDL_SetRenderDrawColor(renderer, 0x00, 0xff, 0x00, SDL_ALPHA_OPAQUE);
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(renderer, 0x00, 0xff, 0x00, 0x8f);
     SDL_RenderFillRectF(renderer, &player_rect);
 
     // Present rendered frame
@@ -392,6 +498,7 @@ int main()
     int vjoy_index = -1;    // SDL-index of virtual joystick/game-controller
     int window_w = 0;
     int window_h = 0;
+    SDL_Surface *font_surface = NULL;
 
     // Initialize SDL
     SDL_SetHint(SDL_HINT_IOS_HIDE_HOME_INDICATOR, "1");
@@ -436,6 +543,16 @@ int main()
     }
 
     SDL_Log("Num joysticks at init: %d\n", SDL_NumJoysticks());
+
+    // Load the bitmap font into an SDL_Texture
+    font_surface = SDL_CreateRGBSurfaceFrom(
+        main_font.pixels,
+        main_font.image_w, main_font.image_h,
+        main_font.bits_per_pixel,
+        main_font.image_w / 8,  // pitch
+        0, 0, 0, 0              // masks: R, G, B, A
+    );
+    main_font.texture = SDL_CreateTextureFromSurface(renderer, font_surface);
 
     // Resize the game field to that of the window.
     // Please note that on some platforms, the specified window
