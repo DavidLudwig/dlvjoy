@@ -481,9 +481,10 @@ static void loop()
         "or clicking in the game-window,\n"
         "and then dragging in the desired\n"
         "direction, or by using a real game\n"
-        "controller's left-most analog stick.\n"
-        "All player movements are sent\n"
-        "through SDL2's Game Controller API.\n");
+        "controller's left-most analog stick\n"
+        "(on compatible platforms and browsers).\n"
+        "All player movements are sent through\n"
+        "SDL2's Game Controller API.\n");
     text_pos = DrawText(renderer, text_margins, text_pos.y + 7, &main_font, 2,
         "Num Hardware Controllers Detected: %d",
         num_hardware_controllers);
