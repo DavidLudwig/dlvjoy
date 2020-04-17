@@ -167,7 +167,7 @@ static void resize_game_field(int w, int h)
     game_h = h;
 }
 
-static SDL_bool is_from_input_source(const SDL_Event *event, const Input_Source *src)
+static SDL_bool is_from_input_source(const Input_Source *src, const SDL_Event *event)
 {
     if (!src || !event) {
         return SDL_FALSE;
@@ -341,7 +341,7 @@ static void loop()
                 float dlength;
 
                 if (vjoy_is_active &&
-                    is_from_input_source(&event, &vjoy_input_source))
+                    is_from_input_source(&vjoy_input_source, &event))
                 {
                     vjoy_current = to_game_coordinate(&event);
                     dx = vjoy_current.x - vjoy_center.x;
@@ -374,7 +374,7 @@ static void loop()
             case SDL_FINGERUP:
             case SDL_MOUSEBUTTONUP: {
                 if (vjoy_is_active &&
-                    is_from_input_source(&event, &vjoy_input_source))
+                    is_from_input_source(&vjoy_input_source, &event))
                 {
                     // Reset vjoy position to zero
                     SDL_JoystickSetVirtualAxis(
