@@ -44,10 +44,16 @@ static float player_cy = 0.f;       // center of player on Y axis
 static const float player_size = 32.f;     // width and height of player, as drawn
 static const int axis_dead_zone = 8000;    // lower-threshold for game controller axis values
 static const float player_speed = 150.f;   // in window-units per second
+static SDL_Texture * player_texture = NULL;// player's texture
 static int game_w = 0;              // width of game-field; in SDL_Window size units
 static int game_h = 0;              // height of game-field; in SDL_Window size units
 static Uint64 prev_loop_time = 0;   // previous value of loop()'s 'now';
                                     //   as retrieved from SDL_GetPerformanceCounter()
+
+static uint8_t player_pixels[] = {  // an 8x8 image at 1 bit-per-pixel
+    255,221,153,255,255,189,195,255
+};
+
 
 typedef struct {
     int image_w;
@@ -480,14 +486,25 @@ static void loop()
         "Num Hardware Controllers Detected: %d",
         num_hardware_controllers);
 
-    // Draw the player
+    // Setup to draw the player
     player_rect.x = player_cx - (player_size / 2.f);
     player_rect.y = player_cy - (player_size / 2.f);
     player_rect.w = player_size;
     player_rect.h = player_size;
-    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-    SDL_SetRenderDrawColor(renderer, 0x00, 0xff, 0x00, 0x8f);
+
+    // Draw player texture
+    SDL_SetTextureColorMod(player_texture, 0x00, 0xff, 0x00);
+    SDL_SetTextureBlendMode(player_texture, SDL_BLENDMODE_ADD);
+    SDL_RenderCopyF(renderer, player_texture, NULL, &player_rect);
+
+    // Add a tint on top of the player texture
+    SDL_SetRenderDrawColor(renderer, 0x00, 0xff, 0x00, 0x4f);
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_ADD);
     SDL_RenderFillRectF(renderer, &player_rect);
+
+    // Add a border to the player
+    SDL_SetRenderDrawColor(renderer, 0x00, 0xff, 0x00, SDL_ALPHA_OPAQUE);
+    SDL_RenderDrawRectF(renderer, &player_rect);
 
     // Present rendered frame
     SDL_RenderPresent(renderer);
@@ -498,7 +515,7 @@ int main()
     int vjoy_index = -1;    // SDL-index of virtual joystick/game-controller
     int window_w = 0;
     int window_h = 0;
-    SDL_Surface *font_surface = NULL;
+    SDL_Surface *temp_surface = NULL;
 
     // Initialize SDL
     SDL_SetHint(SDL_HINT_IOS_HIDE_HOME_INDICATOR, "1");
@@ -545,14 +562,25 @@ int main()
     SDL_Log("Num joysticks at init: %d\n", SDL_NumJoysticks());
 
     // Load the bitmap font into an SDL_Texture
-    font_surface = SDL_CreateRGBSurfaceFrom(
+    temp_surface = SDL_CreateRGBSurfaceFrom(
         main_font.pixels,
         main_font.image_w, main_font.image_h,
         main_font.bits_per_pixel,
         main_font.image_w / 8,  // pitch
         0, 0, 0, 0              // masks: R, G, B, A
     );
-    main_font.texture = SDL_CreateTextureFromSurface(renderer, font_surface);
+    main_font.texture = SDL_CreateTextureFromSurface(renderer, temp_surface);
+
+    // Load the player texture
+    temp_surface = SDL_CreateRGBSurfaceFrom(
+        player_pixels,
+        8, 8,
+        1,
+        1,
+        0, 0, 0, 0);
+    if (temp_surface) {
+        player_texture = SDL_CreateTextureFromSurface(renderer, temp_surface);
+    }
 
     // Resize the game field to that of the window.
     // Please note that on some platforms, the specified window
