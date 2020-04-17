@@ -254,6 +254,7 @@ static void loop()
     int i;
     int joy_index;
     SDL_Point text_pos;
+    const int text_margins = 10;
 
     // We're done with 'prev_loop_time' for now; go ahead
     // and set it up for the next call to loop.
@@ -473,17 +474,17 @@ static void loop()
 
     // Draw informational text
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
-    text_pos = DrawText(renderer, 10, 40, &main_font, 3,
-        "SDL2 Virtual Game\nControllers\n");
-    text_pos = DrawText(renderer, 10, text_pos.y + 5, &main_font, 2,
+    text_pos = DrawText(renderer, text_margins, 40, &main_font, 3,
+        "SDL2 Virtual Game\nController, Demo\n");
+    text_pos = DrawText(renderer, text_margins, text_pos.y + 7, &main_font, 2,
         "Move the player either by tapping\n"
         "or clicking in the game-window,\n"
         "and then dragging in the desired\n"
-        "direction, or by using real game\n"
-        "controller hardware.  All player\n"
-        "movements are sent through SDL2's\n"
-        "Game Controller API.\n");
-    text_pos = DrawText(renderer, 10, text_pos.y + 5, &main_font, 2,
+        "direction, or by using a real game\n"
+        "controller's left-most analog stick.\n"
+        "All player movements are sent\n"
+        "through SDL2's Game Controller API.\n");
+    text_pos = DrawText(renderer, text_margins, text_pos.y + 7, &main_font, 2,
         "Num Hardware Controllers Detected: %d",
         num_hardware_controllers);
 
