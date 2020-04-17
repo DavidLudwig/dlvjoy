@@ -473,16 +473,17 @@ static void loop()
 
     // Draw informational text
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
-    text_pos = DrawText(renderer, 20, 40, &main_font, 3,
+    text_pos = DrawText(renderer, 10, 40, &main_font, 3,
         "SDL2 Virtual Game\nControllers\n");
-    text_pos = DrawText(renderer, 20, text_pos.y + 5, &main_font, 2,
-        "Tap or click, then drag, to move\n"
-        "the player-square, or connect and\n"
-        "use a hardware game controller.\n"
-        "Touch or mouse movements are sent\n"
-        "through an SDL2-managed, virtual\n"
-        "game controller.\n");
-    text_pos = DrawText(renderer, 20, text_pos.y + 5, &main_font, 2,
+    text_pos = DrawText(renderer, 10, text_pos.y + 5, &main_font, 2,
+        "Move the player either by tapping\n"
+        "or clicking in the game-window,\n"
+        "and then dragging in the desired\n"
+        "direction, or by using real game\n"
+        "controller hardware.  All player\n"
+        "movements are sent through SDL2's\n"
+        "Game Controller API.\n");
+    text_pos = DrawText(renderer, 10, text_pos.y + 5, &main_font, 2,
         "Num Hardware Controllers Detected: %d",
         num_hardware_controllers);
 
