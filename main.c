@@ -248,7 +248,6 @@ static void loop()
     float player_dx = 0.f;
     float player_dy = 0.f;
     int num_joysticks = 0;
-    int num_hardware_controllers = 0;
     SDL_FRect player_rect = {0};
     SDL_Event event;
     int i;
@@ -453,9 +452,6 @@ static void loop()
             // and thus has unidentifiable axes.  Skip it.
             continue;
         }
-        if (!SDL_JoystickIsVirtual(joy_index)) {
-            num_hardware_controllers++;
-        }
 
         input_value = SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTX);
         if (SDL_abs(input_value) > axis_dead_zone) {
@@ -485,9 +481,6 @@ static void loop()
         "(on compatible platforms and browsers).\n"
         "All player movements are sent through\n"
         "SDL2's Game Controller API.\n");
-    text_pos = DrawText(renderer, text_margins, text_pos.y + 7, &main_font, 2,
-        "Num Hardware Controllers Detected: %d",
-        num_hardware_controllers);
 
     // Setup to draw the player
     player_rect.x = player_cx - (player_size / 2.f);
